@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const {
   createIssue,
   getIssues,
@@ -9,24 +8,15 @@ const {
   deleteIssue,
 } = require('../controllers/issueController');
 
-// Create new issue
-router.post('/', createIssue);
+const { protect } = require('../middleware/authMiddleware');
 
-// Get all issues
+//Protected routes
+router.post('/', protect, createIssue);
+router.put('/:id', protect, updateIssue);
+router.delete('/:id', protect, deleteIssue);
+
+//Public routes
 router.get('/', getIssues);
-
-// Get issue by ID
 router.get('/:id', getIssueById);
 
-// Update issue by ID
-router.put('/:id', updateIssue);
-
-// Delete issue by ID
-router.delete('/:id', deleteIssue);
-
 module.exports = router;
-
-
-
-
-
