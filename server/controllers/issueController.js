@@ -1,83 +1,109 @@
+// server/controllers/issueController.js
 const Issue = require('../models/Issue');
 
-// Create a new issue
-exports.createIssue = async (req, res) => {
+// @desc    Create new issue
+// @route   POST /api/issues
+// @access  Private
+const createIssue = async (req, res) => {
   try {
-    const { title, description, category, location } = req.body;
+    const { title, description, location } = req.body;
 
-    // Basic validation
-    if (!title || !description || !category || !location) {
-      return res.status(400).json({ message: 'All fields are required' });
+    if (!title || !description || !location) {
+      return res.status(400).json({ message: 'Please fill all required fields' });
     }
 
-    const newIssue = new Issue({
+    const issue = await Issue.create({
       title,
       description,
-      category,
       location,
-      user: req.user._id, // add the logged-in user's ID
+      user: req.user._id,
     });
 
-    const savedIssue = await newIssue.save();
-    res.status(201).json(savedIssue);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(201).json(issue);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error while creating issue' });
   }
 };
 
-// Get all issues
-exports.getIssues = async (req, res) => {
+// @desc    Get all issues
+// @route   GET /api/issues
+// @access  Public
+const getIssues = async (req, res) => {
   try {
-    const issues = await Issue.find().sort({ createdAt: -1 }).populate('user', 'name email');
+    const issues = await Issue.find().populate('user', 'name');
     res.json(issues);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching issues' });
   }
 };
 
-// Get issue by ID
-exports.getIssueById = async (req, res) => {
+// @desc    Get single issue by ID
+// @route   GET /api/issues/:id
+// @access  Public
+const getIssueById = async (req, res) => {
   try {
-    const issue = await Issue.findById(req.params.id).populate('user', 'name email');
+    const issue = await Issue.findById(req.params.id).populate('user', 'name');
+
     if (!issue) return res.status(404).json({ message: 'Issue not found' });
+
     res.json(issue);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: 'Error retrieving issue' });
   }
 };
 
-// Update issue by ID
-exports.updateIssue = async (req, res) => {
+// @desc    Update an issue
+// @route   PUT /api/issues/:id
+// @access  Private
+const updateIssue = async (req, res) => {
   try {
     const issue = await Issue.findById(req.params.id);
+
     if (!issue) return res.status(404).json({ message: 'Issue not found' });
 
-    // Optional: Only allow user to update their own issues
     if (issue.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Unauthorized' });
+      return res.status(403).json({ message: 'Not authorized to update this issue' });
     }
 
-    const updatedIssue = await Issue.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updatedIssue);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    const { title, description, location, status } = req.body;
+
+    if (title) issue.title = title;
+    if (description) issue.description = description;
+    if (location) issue.location = location;
+    if (status) issue.status = status;
+
+    const updated = await issue.save();
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: 'Error updating issue' });
   }
 };
 
-// Delete issue by ID
-exports.deleteIssue = async (req, res) => {
+// @desc    Delete an issue
+// @route   DELETE /api/issues/:id
+// @access  Private
+const deleteIssue = async (req, res) => {
   try {
     const issue = await Issue.findById(req.params.id);
+
     if (!issue) return res.status(404).json({ message: 'Issue not found' });
 
-    // Optional: Only allow user to delete their own issues
     if (issue.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Unauthorized' });
+      return res.status(403).json({ message: 'Not authorized to delete this issue' });
     }
 
     await issue.remove();
     res.json({ message: 'Issue deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: 'Error deleting issue' });
   }
 };
+
+module.exports = {
+  createIssue,
+  getIssues,
+  getIssueById,
+  updateIssue,
+  deleteIssue,
+};
+
