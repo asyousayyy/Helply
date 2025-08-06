@@ -1,4 +1,3 @@
-// server/routes/issueRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -11,13 +10,12 @@ const {
 
 const { protect } = require('../middleware/authMiddleware');
 
-// Public routes
-router.get('/', getIssues); // Get all issues
-router.get('/:id', getIssueById); // Get issue by ID
+router.get('/', getIssues);
+router.get('/:id', getIssueById);
 
-// Protected routes
-router.post('/', protect, createIssue); // Create issue (requires login)
-router.put('/:id', protect, updateIssue); // Update issue
-router.delete('/:id', protect, deleteIssue); // Delete issue
+router.post('/', protect, createIssue);
+router.put('/:id', protect, updateIssue);
+router.delete('/:id', protect, deleteIssue);
 
 module.exports = router;
+
