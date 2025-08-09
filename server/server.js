@@ -1,36 +1,32 @@
-import axios from 'axios';
-axios.defaults.withCredentials = true;
-
+// import axios from 'axios';
+// axios.defaults.withCredentials = true;
+// server/server.js
 const express = require('express');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const connectDB = require('./config/db');
 
-const userRoutes = require('./routes/userRoutes');
-const issueRoutes = require('./routes/issueRoutes');
 const authRoutes = require('./routes/authRoutes');
+const issueRoutes = require('./routes/issueRoutes');
 
 dotenv.config();
 connectDB();
 
 const app = express();
 
-app.use(cors({
-  origin: 'http://localhost:3000',  // your frontend origin
-  credentials: true                 // allow cookies to be sent
-}));
-
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({
+  origin: 'http://localhost:3000', // your frontend URL
+  credentials: true
+}));
 
-app.use('/api/users', userRoutes);
-app.use('/api/issues', issueRoutes);
+// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/issues', issueRoutes);
 
-app.get('/', (req, res) => {
-  res.send('API is running...');
-});
-
+// Server start
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
